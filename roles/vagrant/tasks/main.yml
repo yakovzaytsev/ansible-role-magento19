@@ -1,0 +1,35 @@
+- name: phpbrew init
+  shell: |
+    phpbrew init
+
+- replace:
+    path: /root/.phpbrew/bashrc
+    regexp: '\[\[ -z "\$PHPBREW_HOME" ]] && export PHPBREW_HOME="\$HOME/\.phpbrew\"'
+    replace: 'export PHPBREW_ROOT=/opt/phpbrew\nexport PHPBREW_HOME=/root/.phpbrew'
+
+- template:
+    src: phpbrew.j2
+    dest: /etc/profile.d/phpbrew
+
+- name: install php 5.5 (expected to take a while)
+  shell: |
+    source ~/.phpbrew/bashrc
+    phpbrew --debug install --stdout 5.5 as 5.5-dev +default +intl +fpm
+    phpbrew switch 5.5-dev
+  # XXX
+  environment:
+     PHPBREW_ROOT: /opt/phpbrew
+     PHPBREW_HOME: /root/.phpbrew
+
+- name: switch vagrant default php to 5.5-dev
+  shell: |
+    phpbrew init
+    echo "export PHPBREW_SET_PROMPT=1" >> ~/.bashrc
+    echo "[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc" >> ~/.bashrc
+    source ~/.phpbrew/bashrc
+    phpbrew switch 5.5-dev
+  environment:
+     PHPBREW_ROOT: /opt/phpbrew
+     PHPBREW_HOME: /home/vagrant/.phpbrew
+  become: yes
+  become_user: "vagrant"

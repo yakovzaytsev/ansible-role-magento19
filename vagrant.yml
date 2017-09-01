@@ -1,0 +1,17 @@
+- name: Provision Vagrant
+  hosts: magento
+  become: yes
+  pre_tasks:
+    - raw: apt-get update && apt-get install -y python3-apt
+
+    # https://github.com/ansible/ansible-modules-core/issues/2951
+    # - apt:
+    #     name: python3-pip
+    #     state: present
+    #     # XXX
+    #     update_cache: yes
+    - raw: apt-get install -y python3-pip
+  roles:
+    # should come first
+    - ysz.phpbrew
+    - vagrant
