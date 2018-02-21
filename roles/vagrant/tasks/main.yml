@@ -15,21 +15,41 @@
   shell: |
     source ~/.phpbrew/bashrc
     phpbrew --debug install --stdout 5.5 as 5.5-dev +default +intl +fpm
-    phpbrew switch 5.5-dev
-  # XXX
+    phpbrew use 5.5-dev
+    echo "export PHPBREW_SET_PROMPT=1" >> ~/.bashrc
+    echo "[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc" >> ~/.bashrc
   environment:
      PHPBREW_ROOT: /opt/phpbrew
      PHPBREW_HOME: /root/.phpbrew
+  # NB: source 
+  args:
+    executable: /bin/bash
 
-- name: switch vagrant default php to 5.5-dev
+- name: switch vagrant default php to 5.5-dev 1/3
   shell: |
     phpbrew init
+  become: yes
+  become_user: "vagrant"
+
+- name: 2/3
+  replace:
+    path: /home/vagrant/.phpbrew/bashrc
+    regexp: '\[\[ -z "\$PHPBREW_HOME" ]] && export PHPBREW_HOME="\$HOME/\.phpbrew\"'
+    replace: 'export PHPBREW_ROOT=/opt/phpbrew\nexport PHPBREW_HOME=/home/vagrant/.phpbrew'
+  become: yes
+  become_user: "vagrant"
+
+- name: 3/3
+  shell: |
     echo "export PHPBREW_SET_PROMPT=1" >> ~/.bashrc
     echo "[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc" >> ~/.bashrc
     source ~/.phpbrew/bashrc
-    phpbrew switch 5.5-dev
+    phpbrew use 5.5-dev
   environment:
      PHPBREW_ROOT: /opt/phpbrew
      PHPBREW_HOME: /home/vagrant/.phpbrew
   become: yes
   become_user: "vagrant"
+  # NB: source
+  args:
+    executable: /bin/bash
